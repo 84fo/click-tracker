@@ -1,77 +1,57 @@
--- Services
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+-- GUI + Teleport Script
 
--- GUI
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "TrackerUI"
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
 
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 160, 0, 60)
-Frame.Position = UDim2.new(0.5, -80, 0.5, -30)
-Frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-Frame.Active = true
-Frame.Draggable = true
+-- متغير حفظ المكان
+local savedPosition = nil
 
-local Button = Instance.new("TextButton", Frame)
-Button.Size = UDim2.new(1, -10, 1, -10)
-Button.Position = UDim2.new(0, 5, 0, 5)
-Button.Text = "إيقاف"
-Button.TextColor3 = Color3.new(1,1,1)
-Button.BackgroundColor3 = Color3.fromRGB(0,170,255)
+-- إنشاء GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- الحالة
-local Enabled = true
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 120)
+frame.Position = UDim2.new(0.5, -100, 0.5, -60)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.Parent = screenGui
 
--- إنشاء ESP
-local function createESP(pos)
-    local part = Instance.new("Part")
-    part.Size = Vector3.new(0.8,0.8,0.8)
-    part.Material = Enum.Material.Neon
-    part.Color = Color3.fromRGB(255, 0, 0)
-    part.Anchored = true
-    part.CanCollide = false
-    part.Position = pos
-    part.Parent = workspace
+-- زر حفظ المكان
+local setButton = Instance.new("TextButton")
+setButton.Size = UDim2.new(1, -20, 0, 40)
+setButton.Position = UDim2.new(0, 10, 0, 10)
+setButton.Text = "Set Location"
+setButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+setButton.TextColor3 = Color3.new(1,1,1)
+setButton.Parent = frame
 
-    -- Glow إضافي
-    local light = Instance.new("PointLight", part)
-    light.Brightness = 3
-    light.Range = 10
-    light.Color = Color3.fromRGB(255,0,0)
-end
+-- زر النقل
+local tpButton = Instance.new("TextButton")
+tpButton.Size = UDim2.new(1, -20, 0, 40)
+tpButton.Position = UDim2.new(0, 10, 0, 60)
+tpButton.Text = "Teleport"
+tpButton.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+tpButton.TextColor3 = Color3.new(1,1,1)
+tpButton.Parent = frame
 
--- تتبع اللاعبين
-local function hookPlayer(player)
-    if player == LocalPlayer then return end
+-- حفظ المكان
+setButton.MouseButton1Click:Connect(function()
+    if hrp then
+        savedPosition = hrp.CFrame
+        setButton.Text = "Saved!"
+        wait(1)
+        setButton.Text = "Set Location"
+    end
+end)
 
-    player.CharacterAdded:Connect(function(char)
-        char.ChildAdded:Connect(function(child)
-            if child:IsA("Tool") then
-                child.Activated:Connect(function()
-                    if not Enabled then return end
-
-                    local handle = child:FindFirstChild("Handle")
-                    if handle then
-                        createESP(handle.Position)
-                    end
-                end)
-            end
-        end)
-    end)
-end
-
--- ربط الحاليين
-for _, plr in pairs(Players:GetPlayers()) do
-    hookPlayer(plr)
-end
-
--- ربط الجدد
-Players.PlayerAdded:Connect(hookPlayer)
-
--- زر تشغيل / إيقاف
-Button.MouseButton1Click:Connect(function()
-    Enabled = not Enabled
-    Button.Text = Enabled and "إيقاف" or "تشغيل"
-    Button.BackgroundColor3 = Enabled and Color3.fromRGB(0,170,255) or Color3.fromRGB(255,50,50)
+-- النقل
+tpButton.MouseButton1Click:Connect(function()
+    if hrp and savedPosition then
+        hrp.CFrame = savedPosition
+    else
+        tpButton.Text = "No Location!"
+        wait(1)
+        tpButton.Text = "Teleport"
+    end
 end)
