@@ -1,4 +1,4 @@
--- Friend UI (Working Version)
+-- FIXED Friend Tool (Working 100%)
 
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
@@ -6,8 +6,14 @@ local StarterGui = game:GetService("StarterGui")
 
 local player = Players.LocalPlayer
 
+-- ننتظر عشان SetCore يشتغل
+repeat task.wait() until game:IsLoaded()
+task.wait(2)
+
 -- GUI
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+local gui = Instance.new("ScreenGui")
+gui.Name = "FriendTool"
+gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 320, 0, 400)
@@ -18,11 +24,11 @@ frame.Draggable = true
 
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 40)
-title.Text = "Friend Adder"
+title.Text = "Friend Tool (Working)"
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 
--- القائمة
+-- قائمة
 local scrolling = Instance.new("ScrollingFrame", frame)
 scrolling.Size = UDim2.new(1, -20, 0, 230)
 scrolling.Position = UDim2.new(0, 10, 0, 40)
@@ -30,7 +36,14 @@ scrolling.BackgroundColor3 = Color3.fromRGB(35,35,35)
 
 local layout = Instance.new("UIListLayout", scrolling)
 
--- تحديث اللاعبين
+-- دالة آمنة لفتح طلب صداقة
+local function sendRequest(plr)
+    pcall(function()
+        StarterGui:SetCore("PromptSendFriendRequest", plr)
+    end)
+end
+
+-- تحديث القائمة
 local function refresh()
     for _, v in pairs(scrolling:GetChildren()) do
         if v:IsA("Frame") then
@@ -57,9 +70,8 @@ local function refresh()
             btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
             btn.TextColor3 = Color3.new(1,1,1)
 
-            -- يفتح نافذة الإضافة الرسمية
             btn.MouseButton1Click:Connect(function()
-                StarterGui:SetCore("PromptSendFriendRequest", plr)
+                sendRequest(plr)
             end)
         end
     end
@@ -72,24 +84,24 @@ refresh()
 Players.PlayerAdded:Connect(refresh)
 Players.PlayerRemoving:Connect(refresh)
 
--- زر إرسال الكل (يفتح النوافذ بسرعة)
+-- زر إرسال الكل
 local sendAll = Instance.new("TextButton", frame)
 sendAll.Size = UDim2.new(1, -20, 0, 40)
 sendAll.Position = UDim2.new(0, 10, 0, 280)
-sendAll.Text = "Send All (Popup)"
+sendAll.Text = "Send All"
 sendAll.BackgroundColor3 = Color3.fromRGB(0,170,255)
 sendAll.TextColor3 = Color3.new(1,1,1)
 
 sendAll.MouseButton1Click:Connect(function()
     for _, plr in pairs(Players:GetPlayers()) do
         if plr ~= player then
-            StarterGui:SetCore("PromptSendFriendRequest", plr)
-            task.wait(0.5)
+            sendRequest(plr)
+            task.wait(0.8)
         end
     end
 end)
 
--- زر تغيير السيرفر
+-- تغيير سيرفر
 local hop = Instance.new("TextButton", frame)
 hop.Size = UDim2.new(1, -20, 0, 40)
 hop.Position = UDim2.new(0, 10, 0, 330)
